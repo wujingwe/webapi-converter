@@ -4,6 +4,7 @@ public class AuthVo extends BasicVo {
 	public final SidVo data;
 
 	public AuthVo(SidVo data) {
+		super(true, null);
 		this.data = data;
 	}
 

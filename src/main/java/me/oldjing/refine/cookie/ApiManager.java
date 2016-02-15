@@ -1,4 +1,4 @@
-package me.oldjing.refine.api;
+package me.oldjing.refine.cookie;
 
 import java.io.IOException;
 import java.net.URI;

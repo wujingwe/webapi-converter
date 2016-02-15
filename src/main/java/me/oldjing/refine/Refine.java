@@ -1,14 +1,16 @@
 package me.oldjing.refine;
 
 import com.google.gson.Gson;
-import me.oldjing.refine.api.ApiCookie;
-import me.oldjing.refine.api.ApiHandler;
-import me.oldjing.refine.api.ApiManager;
-import me.oldjing.refine.api.BasicError;
+import com.google.gson.GsonBuilder;
+import me.oldjing.refine.cookie.ApiCookie;
+import me.oldjing.refine.cookie.ApiHandler;
+import me.oldjing.refine.cookie.ApiManager;
+import me.oldjing.refine.cookie.BasicError;
 import me.oldjing.refine.vos.ApiMapVo;
 import me.oldjing.refine.vos.ApiMapVo.ApiVo;
 import me.oldjing.refine.vos.BasicVo;
 import me.oldjing.refine.vos.BasicVo.ErrorCodeVo;
+import me.oldjing.refine.vos.CompoundVo;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -23,6 +25,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Refine {
@@ -46,6 +49,9 @@ public class Refine {
 	private Refine(Builder builder) {
 		this.baseUrl = builder.baseUrl;
 
+//		GsonBuilder gsonBuilder = new GsonBuilder();
+//		gsonBuilder.registerTypeAdapter(CompoundVo.class, new CompoundDeserializer());
+//		gson = gsonBuilder.create();
 		gson = new Gson();
 
 		ApiManager apiManager = new ApiManager();
@@ -136,6 +142,10 @@ public class Refine {
 						String value = (String) args[i];
 						fieldMap.put(key, apiCookie.jsonEncode() ? gson.toJson(value) : value);
 					} else if (parameterAnnotation instanceof FieldMap) {
+					} else if (parameterAnnotation instanceof Compound) {
+						String key = "compound";
+						String value = gson.toJson(args[i]);
+						fieldMap.put(key, value);
 					}
 				}
 			}
