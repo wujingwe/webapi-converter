@@ -1,4 +1,4 @@
-QuickConnectConverter
+WebApiConverter
 =====================
 
 An Retrofit converter for Synology WebAPI
