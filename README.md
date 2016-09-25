@@ -1,7 +1,7 @@
 QuickConnectConverter
 =====================
 
-An Retrofit converter for Synology WebAPI
+A Retrofit converter for Synology Web API
 
 What is Retrofit converter?
 ---------------------------
