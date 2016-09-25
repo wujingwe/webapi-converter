@@ -1,15 +1,14 @@
-package me.oldjing.myapi.converter;
+package webapi;
 
-import android.util.Pair;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.SerializedName;
+import com.google.common.reflect.TypeToken;
+import com.squareup.moshi.Json;
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,17 +29,19 @@ import okio.BufferedSink;
 import retrofit2.Converter;
 import syno.WebApi;
 
-public class ApiRequestBodyConverter<T> implements Converter<T, RequestBody> {
+final class ApiRequestBodyConverter<T> implements Converter<T, RequestBody> {
 	private static final MediaType MEDIA_TYPE =
 			MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8");
 	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
-	private final Gson gson;
-	private final TypeAdapter<T> adapter;
+	private final Moshi moshi;
+//	private final JsonAdapter<T> mAdapter;
+	private final boolean serializeNulls;
 
-	ApiRequestBodyConverter(Gson gson, TypeAdapter<T> adapter) {
-		this.gson = gson;
-		this.adapter = adapter;
+	ApiRequestBodyConverter(Moshi moshi, JsonAdapter<T> adapter, boolean serializeNulls) {
+		this.moshi = moshi;
+//		mAdapter = adapter;
+		this.serializeNulls = serializeNulls;
 	}
 
 	@Override
@@ -61,8 +62,11 @@ public class ApiRequestBodyConverter<T> implements Converter<T, RequestBody> {
 		if (cls.getAnnotation(Compound.class) != null) {
 			for (Field field : fields) {
 				if (field.getAnnotation(Param.class) != null) {
-					List<JsonObject> jsonObjects = compound(value, field);
-					builder.add("compound", gson.toJson(jsonObjects));
+					List<String> jsonStrings = compound(value, field);
+
+					final Type type = new TypeToken<List<String>>() {}.getType();
+					JsonAdapter<List> adapter = moshi.adapter(type);
+					builder.add("compound", adapter.toJson(jsonStrings));
 				}
 			}
 
@@ -161,8 +165,8 @@ public class ApiRequestBodyConverter<T> implements Converter<T, RequestBody> {
 
 	private Pair<String, Object> param(Object value, Field field) {
 		try {
-			SerializedName serializedName = field.getAnnotation(SerializedName.class);
-			final String name = (serializedName != null) ? serializedName.value() : field.getName();
+			Json json = field.getAnnotation(Json.class);
+			final String name = (json != null) ? json.name() : field.getName();
 			final Object result = field.get(value);
 
 			// FIXME: requestFormat issue
@@ -196,47 +200,54 @@ public class ApiRequestBodyConverter<T> implements Converter<T, RequestBody> {
 		return map;
 	}
 
-	private List<JsonObject> compound(T value, Field field) {
-		List<JsonObject> jsonObjects = new ArrayList<>();
+	@SuppressWarnings("unchecked")
+	private List<String> compound(T value, Field field) {
+		List<String> jsonStrings = new ArrayList<>();
 
 		try {
-			List<WebApi> webApis = (List<WebApi>) field.get(value);
-			for (WebApi webApi : webApis) {
-				final JsonObject jsonObject = new JsonObject();
-				final Class cls = webApi.getClass();
-				final Api api = webApi.getClass().getAnnotation(Api.class);
-				jsonObject.addProperty("api", api.value());
+			Object object = field.get(value);
+			if (object instanceof List) {
+				List<WebApi> webApis = (List<WebApi>) object;
 
-				final Field[] fields = cls.getDeclaredFields();
-				for (Field myField : fields) {
-					if (isSyApi(myField)) {
-						final Pair<String, Object> param = param(webApi, myField);
-						if (param != null) {
-							final String name = param.first;
-							final Object result = param.second;
-							jsonObject.addProperty(name, result.toString());
+				final Type type = new TypeToken<Map<String, String>>() {}.getType();
+				JsonAdapter<Map> adapter = moshi.adapter(type);
+
+				for (WebApi webApi : webApis) {
+					Map<String, String> map = new HashMap<>();
+
+					final Class cls = webApi.getClass();
+					final Api api = webApi.getClass().getAnnotation(Api.class);
+					map.put("api", api.value());
+
+					final Field[] fields = cls.getDeclaredFields();
+					for (Field myField : fields) {
+						if (isSyApi(myField)) {
+							final Pair<String, Object> param = param(webApi, myField);
+							if (param != null) {
+								final String name = param.first;
+								final Object result = param.second;
+								map.put(name, result.toString());
+							}
 						}
-					}
 
-					if (myField.getAnnotation(ParamMap.class) != null) {
-						final Map<String, Object> params = paramMap(webApi, myField);
-						if (params != null) {
-							for (Entry<String, Object> entry : params.entrySet()) {
-								final String name = entry.getKey();
-								final Object result = entry.getValue();
-								jsonObject.addProperty(name, result.toString());
+						if (myField.getAnnotation(ParamMap.class) != null) {
+							final Map<String, Object> params = paramMap(webApi, myField);
+							if (params != null) {
+								for (Entry<String, Object> entry : params.entrySet()) {
+									final String name = entry.getKey();
+									final Object result = entry.getValue();
+									map.put(name, result.toString());
+								}
 							}
 						}
 					}
+					jsonStrings.add(adapter.toJson(map));
 				}
-				jsonObjects.add(jsonObject);
+				return jsonStrings;
 			}
-			return jsonObjects;
-
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
-
 		return null;
 	}
 

@@ -1,14 +1,15 @@
 package me.oldjing.myapi;
 
-import com.google.gson.annotations.SerializedName;
+import com.squareup.moshi.Json;
 
 public class EncryptVo {
 	public CipherDataVo data;
+	public Object error;
 
-	public class CipherDataVo {
-		@SerializedName("cipherkey") public String cipherKey;
-		@SerializedName("ciphertoken") public String cipherToken;
-		@SerializedName("public_key") public String publicKey;
+	public static class CipherDataVo {
+		@Json(name = "cipherkey") public String cipherKey;
+		@Json(name = "ciphertoken") public String cipherToken;
+		@Json(name = "public_key") public String publicKey;
 		public int server_time;
 	}
 }

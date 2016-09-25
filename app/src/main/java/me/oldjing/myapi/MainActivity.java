@@ -5,15 +5,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 
-import com.google.gson.JsonObject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import me.oldjing.myapi.EncryptVo.CipherDataVo;
-import me.oldjing.myapi.converter.ApiConverterFactory;
 import me.oldjing.myapi.util.CgiEncryption;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -38,6 +35,7 @@ import syno.core.upgrade.server.Server;
 import syno.core.upgrade.server.SyApi_Server;
 import syno.entry.Request;
 import syno.entry.SyApi_Request;
+import webapi.ApiConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,44 +56,38 @@ public class MainActivity extends AppCompatActivity {
 				.addInterceptor(logging)
 				.build();
 
-		HttpUrl baseUrl = HttpUrl.parse("http://localhost");
-		Retrofit retrofit = new Retrofit.Builder()
-				.callFactory(client)
-				.baseUrl(baseUrl)
-				.addConverterFactory(ApiConverterFactory.create())
-				.addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-				.build();
-		final ApiService apiService = retrofit.create(ApiService.class);
+		HttpUrl baseUrl = HttpUrl.parse("localhost");
+		final ApiService apiService = ApiService.Creator.newService(client, baseUrl);
 
 		Observable
-				.defer(new Func0<Observable<JsonObject>>() {
+				.defer(new Func0<Observable<Object>>() {
 					@Override
-					public Observable<JsonObject> call() {
+					public Observable<Object> call() {
 						Info info = new SyApi_Info()
 								.query("all")
 								.build(Info.QUERY, 1);
 						return apiService.query(info);
 					}
 				})
-				.flatMap(new Func1<JsonObject, Observable<EncryptVo>>() {
+				.flatMap(new Func1<Object, Observable<EncryptVo>>() {
 					@Override
-					public Observable<EncryptVo> call(JsonObject jsonObject) {
+					public Observable<EncryptVo> call(Object object) {
 						Encryption encryption = new SyApi_Encryption()
 								.build(Encryption.GET_INFO, 1);
 						return apiService.encrypt("encryption.cgi", encryption);
 					}
 				})
-				.flatMap(new Func1<EncryptVo, Observable<JsonObject>>() {
+				.flatMap(new Func1<EncryptVo, Observable<Object>>() {
 					@Override
-					public Observable<JsonObject> call(EncryptVo encryptVo) {
+					public Observable<Object> call(EncryptVo encryptVo) {
 						final CipherDataVo cipherDataVo = encryptVo.data;
 						final int timeBias = cipherDataVo.server_time - (int) (System.currentTimeMillis() / 1000);
 						final CgiEncryption encrypt = new CgiEncryption(
 								cipherDataVo.publicKey, cipherDataVo.cipherToken, cipherDataVo.cipherKey, timeBias);
 
 						Map<String, String> params = new HashMap<>();
-						params.put("account", "user");
-						params.put("passwd", "password");
+						params.put("account", "root");
+						params.put("passwd", "passwd");
 						params = encrypt.encryptFromParams(params);
 
 						Auth auth = new SyApi_Auth()
@@ -106,9 +98,9 @@ public class MainActivity extends AppCompatActivity {
 						return apiService.auth("auth.cgi", auth);
 					}
 				})
-				.flatMap(new Func1<JsonObject, Observable<JsonObject>>() {
+				.flatMap(new Func1<Object, Observable<Object>>() {
 					@Override
-					public Observable<JsonObject> call(JsonObject jsonObject) {
+					public Observable<Object> call(Object object) {
 						Server server1 = new SyApi_Server()
 								.build(Server.CHECK, 1);
 						Server server2 = new SyApi_Server()
@@ -124,10 +116,10 @@ public class MainActivity extends AppCompatActivity {
 				})
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribeOn(Schedulers.io())
-				.subscribe(new Action1<JsonObject>() {
+				.subscribe(new Action1<Object>() {
 					@Override
-					public void call(JsonObject jsonObject) {
-						String result = jsonObject.toString();
+					public void call(Object object) {
+						String result = object.toString();
 						Log.e(TAG, result);
 
 						mTextView.setText(result);
