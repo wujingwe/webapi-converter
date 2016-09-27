@@ -16,8 +16,6 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.logging.HttpLoggingInterceptor.Level;
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -28,14 +26,13 @@ import syno.WebApi;
 import syno.api.Auth;
 import syno.api.Encryption;
 import syno.api.Info;
-import syno.api.SyApi_Auth;
-import syno.api.SyApi_Encryption;
-import syno.api.SyApi_Info;
+import syno.api.SyApiAuth;
+import syno.api.SyApiEncryption;
+import syno.api.SyApiInfo;
 import syno.core.upgrade.server.Server;
-import syno.core.upgrade.server.SyApi_Server;
+import syno.core.upgrade.server.SyApiServer;
 import syno.entry.Request;
-import syno.entry.SyApi_Request;
-import webapi.ApiConverterFactory;
+import syno.entry.SyApiRequest;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,14 +53,14 @@ public class MainActivity extends AppCompatActivity {
 				.addInterceptor(logging)
 				.build();
 
-		HttpUrl baseUrl = HttpUrl.parse("localhost");
+		HttpUrl baseUrl = HttpUrl.parse("http://192.168.32.102:25000");
 		final ApiService apiService = ApiService.Creator.newService(client, baseUrl);
 
 		Observable
 				.defer(new Func0<Observable<Object>>() {
 					@Override
 					public Observable<Object> call() {
-						Info info = new SyApi_Info()
+						Info info = new SyApiInfo()
 								.query("all")
 								.build(Info.QUERY, 1);
 						return apiService.query(info);
@@ -72,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 				.flatMap(new Func1<Object, Observable<EncryptVo>>() {
 					@Override
 					public Observable<EncryptVo> call(Object object) {
-						Encryption encryption = new SyApi_Encryption()
+						Encryption encryption = new SyApiEncryption()
 								.build(Encryption.GET_INFO, 1);
 						return apiService.encrypt("encryption.cgi", encryption);
 					}
@@ -86,11 +83,11 @@ public class MainActivity extends AppCompatActivity {
 								cipherDataVo.publicKey, cipherDataVo.cipherToken, cipherDataVo.cipherKey, timeBias);
 
 						Map<String, String> params = new HashMap<>();
-						params.put("account", "root");
-						params.put("passwd", "passwd");
+						params.put("account", "admin");
+						params.put("passwd", "w3025156");
 						params = encrypt.encryptFromParams(params);
 
-						Auth auth = new SyApi_Auth()
+						Auth auth = new SyApiAuth()
 								.clientTime(System.currentTimeMillis() / 1000)
 								.session("dsm")
 								.params(params)
@@ -101,14 +98,14 @@ public class MainActivity extends AppCompatActivity {
 				.flatMap(new Func1<Object, Observable<Object>>() {
 					@Override
 					public Observable<Object> call(Object object) {
-						Server server1 = new SyApi_Server()
+						Server server1 = new SyApiServer()
 								.build(Server.CHECK, 1);
-						Server server2 = new SyApi_Server()
+						Server server2 = new SyApiServer()
 								.build(Server.CHECK, 1);
 						List<WebApi> compound = new ArrayList<>();
 						compound.add(server1);
 						compound.add(server2);
-						Request request = new SyApi_Request()
+						Request request = new SyApiRequest()
 								.compound(compound)
 								.build(Request.REQUEST, 1);
 						return apiService.compound("entry.cgi", request);

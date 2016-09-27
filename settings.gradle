@@ -1,1 +1,1 @@
-include ':webapi', ':api-converter', ':app'
+include ':webapi', 'compiler', ':app'

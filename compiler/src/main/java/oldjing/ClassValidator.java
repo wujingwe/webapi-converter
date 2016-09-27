@@ -1,4 +1,4 @@
-package me.oldjing;
+package oldjing;
 
 import javax.lang.model.element.TypeElement;
 

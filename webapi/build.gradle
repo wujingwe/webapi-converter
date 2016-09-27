@@ -1,4 +1,6 @@
 apply plugin: 'java'
+apply plugin: 'net.ltgt.apt'
+//apply plugin: "com.droi.openplatform.DroiQueryAnnotationProcessor"
 
 // This is important even if Android Studio claims it isn't
 // used. Android can't interpret Java 8 byte code.
@@ -10,4 +12,8 @@ dependencies {
 
     compile 'com.google.auto.service:auto-service:1.0-rc2'
     compile 'com.squareup:javapoet:1.7.0'
+
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:converter-moshi:2.1.0'
+    compile 'com.squareup.okio:okio:1.9.0'
 }

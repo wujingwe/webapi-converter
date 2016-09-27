@@ -1,4 +1,4 @@
-package me.oldjing;
+package oldjing;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.AnnotationSpec;
@@ -113,7 +113,7 @@ public class ApiProcessor extends AbstractProcessor {
 
 	private void genApiBuilderCls(TypeElement annotatedClass) throws IOException {
 		final String packageName = getPackageName(processingEnv.getElementUtils(), annotatedClass);
-		final String className = "SyApi_" + annotatedClass.getSimpleName();
+		final String className = "SyApi" + annotatedClass.getSimpleName();
 
 		TypeSpec.Builder builder = TypeSpec.classBuilder(className)
 				.addModifiers(Modifier.PUBLIC, Modifier.FINAL);

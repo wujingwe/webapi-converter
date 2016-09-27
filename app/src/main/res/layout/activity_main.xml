@@ -10,9 +10,35 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="me.oldjing.myapi.MainActivity">
 
+    <Button
+        android:id="@+id/query_all"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:text="Query All"/>
+
+    <Button
+        android:id="@+id/auth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/query_all"
+        android:text="Auth"/>
+
+    <Button
+        android:id="@+id/compound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/auth"
+        android:text="Compound"/>
+
     <TextView
         android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"/>
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        tools:text="Hello World!"/>
 </RelativeLayout>
