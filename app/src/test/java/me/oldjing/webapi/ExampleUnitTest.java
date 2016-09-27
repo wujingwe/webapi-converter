@@ -1,4 +1,4 @@
-package me.oldjing.myapi;
+package me.oldjing.webapi;
 
 import org.junit.Test;
 

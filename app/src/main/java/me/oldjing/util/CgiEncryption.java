@@ -1,4 +1,4 @@
-package me.oldjing.myapi.util;
+package me.oldjing.util;
 
 import android.util.Base64;
 
@@ -96,7 +96,7 @@ public class CgiEncryption {
 		byte[] result = null;
 
 		try {
-			Cipher cipher = Cipher.getInstance("RSA/CBC/PKCS1Padding");
+			Cipher cipher = Cipher.getInstance("RSA/NONE/PKCS1Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, mPubKey);
 			result = cipher.doFinal(plainByte);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |

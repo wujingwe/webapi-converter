@@ -1,4 +1,4 @@
-package me.oldjing.myapi;
+package me.oldjing.webapi;
 
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
